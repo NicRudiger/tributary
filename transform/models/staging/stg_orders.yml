@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: One row per order line, cast and cleaned from the raw Superstore load.
+    columns:
+      - name: row_id
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        tests:
+          - not_null
