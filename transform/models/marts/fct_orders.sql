@@ -1,4 +1,7 @@
-{{ config(materialized='table') }}
+{{ config(
+    materialized='table',
+    cluster_by=['order_date']
+) }}
 
 select
     row_id,
@@ -14,3 +17,5 @@ select
     discount,
     profit
 from {{ ref('stg_orders') }}
+
+
