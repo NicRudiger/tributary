@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 logs/
 .venv/
+transform/profiles.yml
+transform/.user.yml

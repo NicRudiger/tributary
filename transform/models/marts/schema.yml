@@ -24,18 +24,15 @@ models:
         tests:
           - not_null
           - relationships:
-              arguments:
-                to: ref('dim_customers')
-                field: customer_id
+              to: ref('dim_customers')
+              field: customer_id
       - name: product_id
         tests:
           - not_null
           - relationships:
-              arguments:
-                to: ref('dim_products')
-                field: product_id
+              to: ref('dim_products')
+              field: product_id
       - name: region
         tests:
           - accepted_values:
-              arguments:
-                values: ['East', 'West', 'Central', 'South']
+              values: ['East', 'West', 'Central', 'South']
