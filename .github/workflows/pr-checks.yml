@@ -1,0 +1,45 @@
+name: dbt PR checks
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  dbt-build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: transform
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dbt
+        run: pip install dbt-snowflake==1.12.0
+
+      - name: Create dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << 'EOF'
+          transform:
+            target: ci
+            outputs:
+              ci:
+                type: snowflake
+                account: "${{ secrets.SNOWFLAKE_ACCOUNT }}"
+                user: "${{ secrets.SNOWFLAKE_USER }}"
+                password: "${{ secrets.SNOWFLAKE_PASSWORD }}"
+                role: "${{ secrets.SNOWFLAKE_ROLE }}"
+                database: "${{ secrets.SNOWFLAKE_DATABASE }}"
+                warehouse: "${{ secrets.SNOWFLAKE_WAREHOUSE }}"
+                schema: CI
+                threads: 4
+          EOF
+
+      - name: dbt build (run + test)
+        run: dbt build --target ci
