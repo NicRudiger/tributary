@@ -1,5 +1,7 @@
 # Tributary
 
+![dbt PR checks](https://github.com/NicRudiger/tributary/actions/workflows/pr-checks.yml/badge.svg)
+
 An end-to-end data pipeline that moves raw retail order data from flat-file storage into a tested, production-style analytics warehouse — with automated CI/CD gating every change before it reaches production.
 
 Built to demonstrate the full data engineering lifecycle in miniature: ingestion, transformation, orchestration, testing, and deployment, using the same tools (Airflow, dbt, Snowflake, GitHub Actions) that run these workloads in production environments.
