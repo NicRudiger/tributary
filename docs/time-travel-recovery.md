@@ -12,7 +12,7 @@ Before touching anything, the table's state was captured so any change afterward
 
 ```sql
 SELECT COUNT(*) AS row_count, SUM(sales) AS total_sales
-FROM tributary.analytics.fct_orders;
+FROM TRIBUTARY.ANALYTICS.FCT_ORDERS;
 ```
 
 | row_count | total_sales |
@@ -23,18 +23,17 @@ FROM tributary.analytics.fct_orders;
 
 ## The incident — a destructive update, on purpose
 
-A change that mimics a real mistake — someone runs an `UPDATE` without a `WHERE` clause, or with the wrong one:
+A change that mimics a real mistake: someone runs an `UPDATE` without a `WHERE` clause, or with the wrong one. Run Sep 10, 2026 at 10:41:55 AM, this statement is Query ID `01c6fab1-0208-6cd8-0010-abe600040076` in Snowflake's own query history, so the exact moment of the incident is provable, not reconstructed from memory:
 
 ```sql
-UPDATE tributary.analytics.fct_orders
-SET sales = 0;
+UPDATE TRIBUTARY.ANALYTICS.FCT_ORDERS SET sales = 0;
 ```
 
 Confirming the damage:
 
 ```sql
 SELECT COUNT(*) AS row_count, SUM(sales) AS total_sales
-FROM tributary.analytics.fct_orders;
+FROM TRIBUTARY.ANALYTICS.FCT_ORDERS;
 ```
 
 | row_count | total_sales |
@@ -47,12 +46,12 @@ Row count unchanged, every dollar of sales gone. In a system without Time Travel
 
 ## Detection and recovery — proving the old data still exists
 
-Snowflake retains the pre-change state of a table for a configurable retention window (default: 1 day, up to 90 on Enterprise), addressable by timestamp, offset, or query ID. Rather than guessing at a timestamp, the exact query ID of the destructive `UPDATE` was pulled from the query history and used directly:
+Snowflake retains the pre-change state of a table for a configurable retention window (default: 1 day, up to 90 on Enterprise), addressable by timestamp, offset, or query ID. Rather than guessing at a timestamp, the exact query ID of the destructive `UPDATE` (`01c6fab1-0208-6cd8-0010-abe600040076`) was pulled straight from the query history and used directly, three minutes later at 10:44:39 AM:
 
 ```sql
 SELECT COUNT(*) AS row_count, SUM(sales) AS total_sales
-FROM tributary.analytics.fct_orders
-BEFORE (STATEMENT => '<query_id_of_the_update>');
+FROM TRIBUTARY.ANALYTICS.FCT_ORDERS
+BEFORE (STATEMENT => '01c6fab1-0208-6cd8-0010-abe600040076');
 ```
 
 | row_count | total_sales |
@@ -65,25 +64,24 @@ This is the key proof point: the data was never gone. Snowflake was still holdin
 
 ## Restoring the table
 
-With the recovery point confirmed, it was used to rebuild the table itself:
+With the recovery point confirmed, it was used to rebuild the table itself one minute later, at 10:45:39 AM (Query ID `01c6fab5-0208-62b4-0010-abe60001e1c2`):
 
 ```sql
-CREATE OR REPLACE TABLE tributary.analytics.fct_orders AS
-SELECT *
-FROM tributary.analytics.fct_orders
-BEFORE (STATEMENT => '<query_id_of_the_update>');
+CREATE OR REPLACE TABLE TRIBUTARY.ANALYTICS.FCT_ORDERS AS
+SELECT * FROM TRIBUTARY.ANALYTICS.FCT_ORDERS
+BEFORE (STATEMENT => '01c6fab1-0208-6cd8-0010-abe600040076');
 ```
 
 ```sql
 SELECT COUNT(*) AS row_count, SUM(sales) AS total_sales
-FROM tributary.analytics.fct_orders;
+FROM TRIBUTARY.ANALYTICS.FCT_ORDERS;
 ```
 
 | row_count | total_sales |
 |---|---|
 | 9,994 | $2,297,200.86 |
 
-Numbers match the original baseline exactly.
+Numbers match the original baseline exactly. From the first destructive `UPDATE` to a fully restored table, the entire incident took under four minutes.
 
 *(Screenshot 4 — restored table matching baseline)*
 
@@ -96,7 +94,7 @@ dbt run --select fct_orders
 ```
 
 ```sql
-SHOW TABLES LIKE 'FCT_ORDERS' IN SCHEMA tributary.analytics;
+SHOW TABLES LIKE 'FCT_ORDERS' IN SCHEMA TRIBUTARY.ANALYTICS;
 -- cluster_by: LINEAR(order_date)
 ```
 

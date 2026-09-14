@@ -141,6 +141,7 @@ Named here on purpose — these are the trade-offs made to keep scope tight, not
 - **`ACCOUNTADMIN` everywhere → a scoped role** with only the grants the pipeline actually needs.
 - **Full-refresh models → incremental materialization** on `fct_orders` once data volume made a full rebuild wasteful.
 - **`COPY INTO` idempotency gap** — re-running the same logical date currently relies on the file signature staying stable. A more robust design would key deduplication off of business logic (e.g., a `MERGE` on order ID) rather than file-level dedup.
+- **Deprecated generic-test YAML syntax in `schema.yml`, kept on purpose.** The Airflow containers are pinned to `dbt-core==1.7.13` because of a protobuf dependency conflict, and that version cannot parse the newer nested `arguments:` test syntax at all. The flat syntax used here is the only one that works in both the Airflow containers and the newer dbt (1.12.x) used locally and in CI, at the cost of a deprecation warning on the newer side. Fixing this for real means resolving the underlying Airflow/protobuf version pin, not just editing the YAML.
 
 ## Engineering notes
 
