@@ -26,6 +26,16 @@ renamed as (
         discount::float as discount,
         profit::float as profit
     from source
+),
+
+deduped as (
+    -- Defensive dedup: makes this model idempotent even if RAW.SUPERSTORE_ORDERS
+    -- ever ends up with duplicate rows again (e.g. a re-uploaded or reprocessed
+    -- source file). Keeps exactly one row per row_id no matter how many times
+    -- the same order shows up upstream.
+    select *
+    from renamed
+    qualify row_number() over (partition by row_id order by row_id) = 1
 )
 
-select * from renamed
+select * from deduped
